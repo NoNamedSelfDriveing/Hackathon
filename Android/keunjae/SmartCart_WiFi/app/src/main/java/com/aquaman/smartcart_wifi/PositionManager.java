@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 
 /**
@@ -17,9 +18,9 @@ public class PositionManager implements SensorEventListener{
     //double[] gravityData = new double[2];    //x축, y축 중력 가속도 데이터
 
     //가속도 센서를 통한 거리 측정 관련 데이터
-    double[] accelerationX = {0, 0};    //x축 이전 및 현재 가속도 데이터
-    double[] velocityX = {0, 0};    //x축 이전 및 현재 속도 데이터
-    double[] positionX = {0, 0};    //x축 이동 거리
+    double[] acceleration = {0, 0};    //x축 이전 및 현재 가속도 데이터
+    double[] velocity = {0, 0};    //x축 이전 및 현재 속도 데이터
+    double[] distance = {0, 0};    //x축 이동 거리
     long accelCurrentTime = 0;    //현재 데이터를 얻어 온 시간
     int countMoveEnded = 0;    //움직임이 없는 경우를 카운트하는 변수
 
@@ -28,7 +29,7 @@ public class PositionManager implements SensorEventListener{
     //double[] positionY = new double[2];    //y축 이동 거리
 
     //가속도와 자기계 센서를 통한 방위 측정 관련 데이터
-    float[] acceleration = new float[3];    //x, y, z축 가속도 데이터
+    float[] accelForMagnet = new float[3];    //x, y, z축 가속도 데이터
     float[] magnetism = new float[3];    //자력 데이터
     float[] R = new float[9];    //x, y, z축에 대한 모든 회전각
     float[] orientation = new float[3];    //방위값
@@ -37,13 +38,12 @@ public class PositionManager implements SensorEventListener{
     int countGotAverage = 0;    //평균 계산 횟수 카운팅 변수
     double averageValue = 0.0;    //평균 값
 
-
     //자이로스코프 센서를 통한 회전 각도 측정 관련 데이터
     long gyroCurrentTIme = 0;    //현재 데이터를 얻어온 시간
     double[] gyroZ = {0.0, 0.0};    //z축 회전 각속도
     double yaw = 0.0;    //z축 회전 각도(라디안)
     double radianToDegree = 180.0 / Math.PI;    //라디안을 각도로 변환시키는 상수
-    double turnedDegree = 0.0;    //z축 회전 각도(도)
+    double turnedDegree = 0.0;    //회전한 각도(도)
 
     public PositionManager(Context context) {
         this.context = context;
@@ -66,7 +66,7 @@ public class PositionManager implements SensorEventListener{
                 //final float alpha = (float) 0.8;
 
                 //후에 자기계 센서를 위해 가속도 값 얻어오기
-                System.arraycopy(event.values, 0, acceleration, 0, event.values.length);
+                System.arraycopy(event.values, 0, accelForMagnet, 0, event.values.length);
 
                 if (accelCurrentTime == 0)
                     accelCurrentTime = System.currentTimeMillis();
@@ -84,39 +84,38 @@ public class PositionManager implements SensorEventListener{
                     //gravityData[0] = alpha * gravityData[0] + (1 - alpha) * event.values[0];    //x축의 중력 가속도
 
                     //측정된 데이터에서 가속도만을 알아내기 위해 중력 가속도 데이터 제거
-                    //accelerationX[1] = event.values[0] - gravityData[0];
+                    //acceleration[1] = event.values[0] - gravityData[0];
 
-                    accelerationX[1] = (double)(event.values[0]);    //현재 가속도 값 얻어오기
-                    //accelerationX[1] = Double.parseDouble(String.format("%.10f", accelerationX[1]));    //소수 열째자리까지로 표현
-                    accelerationX[1] = FilteringWindow(accelerationX[1], accelerationWindow);    //노이즈 값 무시
+                    acceleration[1] = (double)(event.values[0]);    //현재 가속도 값 얻어오기
+                    //acceleration[1] = Double.parseDouble(String.format("%.10f", acceleration[1]));    //소수 열째자리까지로 표현
+                    acceleration[1] = FilteringWindow(acceleration[1], accelerationWindow);    //노이즈 값 무시
 
                     //가속도 적분 -> 속도
-                    velocityX[1] = CalcIntegral(velocityX[0], accelerationX[0], accelerationX[1], deltaT);
-                    //velocityX[1] = Double.parseDouble(String.format("%.10f", velocityX[1]));    //소수 열째자리까지 표현
+                    velocity[1] = CalcIntegral(velocity[0], acceleration[0], acceleration[1], deltaT);
+                    //velocity[1] = Double.parseDouble(String.format("%.10f", velocity[1]));    //소수 열째자리까지 표현
 
                     //속도 적분 -> 거리
-                    positionX[1] = CalcIntegral(positionX[0], velocityX[0], velocityX[1], deltaT);
-                    positionX[1] = Double.parseDouble(String.format("%.3f", positionX[1]));    //소수 셋째자리까지 표현
+                    distance[1] = CalcIntegral(distance[0], velocity[0], velocity[1], deltaT);
+                    distance[1] = Double.parseDouble(String.format("%.3f", distance[1]));    //소수 셋째자리까지 표현
 
-                    ((MainActivity) context).tvAcceleration.setText(Double.toString(accelerationX[1]));
-                    ((MainActivity) context).tvVelocity.setText(Double.toString(velocityX[1]));
-                    ((MainActivity) context).tvDistance.setText(Double.toString(positionX[1]));
+                    ((MainActivity) context).tvAcceleration.setText(Double.toString(acceleration[1]));
+                    ((MainActivity) context).tvVelocity.setText(Double.toString(velocity[1]));
+                    ((MainActivity) context).tvDistance.setText(Double.toString(distance[1]));
 
                     //정지한 상태인지 체크
-                    MovementEndCheck();
+                    MovementEndCheck("accelerometer");
 
                     //현재 데이터를 이전 데이터로 저장
-                    accelerationX[0] = accelerationX[1];
-                    velocityX[0] = velocityX[1];
-                    positionX[0] = positionX[1];
-
+                    acceleration[0] = acceleration[1];
+                    velocity[0] = velocity[1];
+                    distance[0] = distance[1];
                 }
                 break;
 
              //방향 센서 데이터 변화에 따른 처리
             case Sensor.TYPE_MAGNETIC_FIELD:
                 System.arraycopy(event.values, 0, magnetism, 0, event.values.length);    //현재 자기계 센서값 읽어오기
-                SensorManager.getRotationMatrix(R, null, acceleration, magnetism);    //회전 행렬 값 얻어오기
+                SensorManager.getRotationMatrix(R, null, accelForMagnet, magnetism);    //회전 행렬 값 얻어오기
                 SensorManager.getOrientation(R, orientation);    //방위값 저장
 
 //                if(orientation[0] > 0.3)
@@ -147,7 +146,7 @@ public class PositionManager implements SensorEventListener{
 
                     //시간 변화량 측정
                     double deltaT = ((double)(gyroCurrentTIme - gyroLastTime) / 1000);    //msec -> sec
-                    double gyroWindow = 0.02;
+                    double gyroWindow = 0.08;
 
                     //z축 회전 각속도 측정 및 노이즈 무시
                     gyroZ[1] = event.values[2];
@@ -155,11 +154,14 @@ public class PositionManager implements SensorEventListener{
 
                     //z축 회전 각속도 적분 -> 회전한 각도
                     yaw = CalcIntegral(yaw, gyroZ[0], gyroZ[1], deltaT);
-                    turnedDegree = yaw * radianToDegree;    //radian -> degree
+                    turnedDegree = yaw * radianToDegree;    //radian -> turnedDegree
                     ((MainActivity)context).tvTurnedDegree.setText(Double.toString(turnedDegree));
-
+                    Log.i("turnedDegree", Double.toString(turnedDegree));
                     //현재 각속도를 이전 각속도로 저장
                     gyroZ[0] = gyroZ[1];
+
+                    //회전이 끝났는지 체크
+                    MovementEndCheck("gyroscope");
                 }
                 break;
 
@@ -168,25 +170,36 @@ public class PositionManager implements SensorEventListener{
 
     //움직임이 없을 떄 센서 값 노이즈 발생 시 제거하는 메소드
     double FilteringWindow(double value, double window) {
-        //final double window = 0.25;    //노이즈인지 판단하는 기준점
-        if(Math.abs(value) <= window)
+        //value가 노이즈 판단 기준점인 window보다 낮으면
+        if(Math.abs(value) <= window) {
             value = 0;
+        }
         return value;
     }
 
-    //움직임이 없을 때 속도를 강제로 0으로 세팅하는 메소드
-    //움직임이 없으면 FilteringWindow() 메소드로 가속도가 0으로 다운되니 속도도 0으로 다운시킴
-    void MovementEndCheck() {
-        //if(Math.abs(velocityX[1]) <= 0.1)
-        //    countMoveEnded++;
-        if(accelerationX[1] == 0)
-            countMoveEnded++;
-        else
-            countMoveEnded = 0;
-        if(countMoveEnded >= 5) {
-            velocityX[1] = 0;
-            velocityX[0] = 0;
+    //움직임이 없을 때 각 센서 데이터들을 강제로 0으로 세팅하는 메소드
+    //가속도 센서의 경우 움직임이 없으면 FilteringWindow() 메소드로 가속도가 0으로 다운되니 속도도 0으로 다운시킴
+    //자이로 센서의 경우 회전이 없으면 회전한 각도인 yaw를 0으로 다운시켜야 함
+    void MovementEndCheck(String sensorType) {
+        //움직임이 없는 가속도 센서에 대한 처리
+        if(sensorType.equals("accelerometer")) {
+            if (acceleration[1] == 0)
+                countMoveEnded++;
+            else
+                countMoveEnded = 0;
+            if (countMoveEnded >= 5) {
+                velocity[1] = 0;
+                velocity[0] = 0;
+            }
         }
+
+        //회전이 없는 자이로스코프 센서에 대한 처리
+        else if(sensorType.equals("gyroscope")) {
+            if(gyroZ[1] == 0) {
+                yaw = 0;
+            }
+        }
+
     }
 
     //적분 수행 메소드
