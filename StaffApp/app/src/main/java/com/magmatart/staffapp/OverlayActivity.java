@@ -5,6 +5,9 @@ package com.magmatart.staffapp;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -29,8 +32,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Exchanger;
-
 public class OverlayActivity extends Activity implements Serializable{
 
     public static final String TAG = "OverlayActivity";
@@ -48,6 +49,11 @@ public class OverlayActivity extends Activity implements Serializable{
     private String IPAddress = "192.168.43.103";
     private int port = 9297;
 
+    private double mCoordX = 0;
+    private double mCoordY = 0;
+    private final double tCoordX = 600;
+    private final double tCoordY = 600;
+
     private String[] navItems = {
             "Floor 1",
             "Floor 2",
@@ -62,9 +68,12 @@ public class OverlayActivity extends Activity implements Serializable{
     };
     private ListView navList;                   // Navigation Drawer Item List View
     private FrameLayout flContainer;            // Layout Container
+    ImageView imageToRotate;
 
     static Cart cart;               // List contain Carts
     String msg;                                 // Receive message by server in this
+
+    int degree;
 
     private int floorNumber;                    // Current showing floor number
     private Intent intent;
@@ -72,9 +81,6 @@ public class OverlayActivity extends Activity implements Serializable{
     String[] integers;
 
     RelativeLayout rl;
-
-    /*
-     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +94,7 @@ public class OverlayActivity extends Activity implements Serializable{
         navList.setOnItemClickListener(new DrawerItemClickListener());
 
         rl = findViewById(R.id.layout_relative);
+        imageToRotate = findViewById(R.id.nav_image);
 
         floorNumber = getIntent().getIntExtra("floorNumber", 1);
         cart = (Cart)getIntent().getSerializableExtra("cart");
@@ -202,5 +209,11 @@ public class OverlayActivity extends Activity implements Serializable{
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(TypekitContextWrapper.wrap(newBase));
+    }
+
+    public Bitmap rotateImage(Bitmap src, float degree){
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        return Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), matrix, true);
     }
 }
