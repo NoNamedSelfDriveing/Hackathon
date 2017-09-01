@@ -5,14 +5,21 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
     SensorManager mSensorManager;
     PositionManager posManager;
+    SurroundingItemsViewer itemsViewer;
     //AccemeterListener eventListener;
+    //LayoutInflater inflater = getLayoutInflater();
     TextView tvAcceleration, tvVelocity, tvDistance, tvOrientation, tvTurnedDegree;
+    ArrayAdapter adapter;
+    ListView listview;
+    static final String[] LIST_MENU = {"LIST1", "LIST2", "LIST3"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +31,10 @@ public class MainActivity extends AppCompatActivity {
         tvOrientation = (TextView)findViewById(R.id.orientation);
         tvTurnedDegree = (TextView)findViewById(R.id.turnedDegree);
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_activated_1, LIST_MENU);
+        listview.setAdapter(adapter);
         posManager = new PositionManager(this);
-
+        itemsViewer = new SurroundingItemsViewer(this);
     }
 
     @Override
