@@ -4,7 +4,6 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.util.Log;
 
 
@@ -23,7 +22,8 @@ public class PositionManager implements SensorEventListener{
     double[] distance = {0, 0};    //x축 이동 거리
     long accelCurrentTime = 0;    //현재 데이터를 얻어 온 시간
     int countMoveEnded = 0;    //움직임이 없는 경우를 카운트하는 변수
-
+    boolean accelChanged = false;    //가속도 센서 값을 읽어 계산이 실행되었는지 판단하는 변수
+    double deltaDistance = 0.0;    //순간 거리 변화량(cm)
     //double[] accelerationY = new double[2];    //y축 이전 및 현재 가속도 데이터
     //double[] velocityY = new double[2];    //y축 이전 및 현재 속도 데이터
     //double[] positionY = new double[2];    //y축 이동 거리
@@ -36,7 +36,8 @@ public class PositionManager implements SensorEventListener{
     double orientationValue = 0;    //방위값 저장 변수
     int direction;    //동서남북 저장 변수 1 : north, 2 : east, 3 : south, 4 : west
     int countGotAverage = 0;    //평균 계산 횟수 카운팅 변수
-    double averageValue = 0.0;    //평균 값
+    double averageOrientation = 0.0;    //평균 값
+    boolean gyroChanged = false;    //자이로 센서 값을 읽어 계산이 실행되었는지 판단하는 변수
 
     //자이로스코프 센서를 통한 회전 각도 측정 관련 데이터
     long gyroCurrentTIme = 0;    //현재 데이터를 얻어온 시간
@@ -44,6 +45,13 @@ public class PositionManager implements SensorEventListener{
     double yaw = 0.0;    //z축 회전 각도(라디안)
     double radianToDegree = 180.0 / Math.PI;    //라디안을 각도로 변환시키는 상수
     double turnedDegree = 0.0;    //회전한 각도(도)
+    boolean degreeChanged = false;    //휴대폰이 회전했는지 체킹하는 변수
+    boolean gyroCalibrated = false;    //앱 실행 시 초반 튀는 자이로 값 보정을 위한 변수
+    double theta = 180.0;    //turnedDegree 저장 변수, 완전한 일반각을 구하기 위해 180도를 저장하고 시작
+
+    //카트의 위치 정보 관련 데이터
+    double coordX = 1200.0, coordY = 150.0;
+    double deltaX = 0.0, deltaY = 0.0;
 
     public PositionManager(Context context) {
         this.context = context;
@@ -97,6 +105,7 @@ public class PositionManager implements SensorEventListener{
                     //속도 적분 -> 거리
                     distance[1] = CalcIntegral(distance[0], velocity[0], velocity[1], deltaT);
                     distance[1] = Double.parseDouble(String.format("%.3f", distance[1]));    //소수 셋째자리까지 표현
+                    deltaDistance = (distance[1] - distance[0]) * 100.0;   //이동 거리 순간 변화량 측정, m -> cm 변환
 
                     ((MainActivity) context).tvAcceleration.setText(Double.toString(acceleration[1]));
                     ((MainActivity) context).tvVelocity.setText(Double.toString(velocity[1]));
@@ -109,32 +118,36 @@ public class PositionManager implements SensorEventListener{
                     acceleration[0] = acceleration[1];
                     velocity[0] = velocity[1];
                     distance[0] = distance[1];
+
+                    accelChanged = true;
                 }
                 break;
 
              //방향 센서 데이터 변화에 따른 처리
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                System.arraycopy(event.values, 0, magnetism, 0, event.values.length);    //현재 자기계 센서값 읽어오기
-                SensorManager.getRotationMatrix(R, null, accelForMagnet, magnetism);    //회전 행렬 값 얻어오기
-                SensorManager.getOrientation(R, orientation);    //방위값 저장
-
-//                if(orientation[0] > 0.3)
-//                    direction = 2;
-//                else if(orientation[0] >= -0.3 && orientation[0] <= 0.3)
-//                    direction = 1;
-//                else if(orientation[0] < -0.3)
-//                    direction = 3;
-                //방위 부호가 마이너스이면 플러스로 변환
-                if(Math.toDegrees((double)orientation[0]) < 0.0)
-                    orientationValue = Math.toDegrees((double)orientation[0]) + 360.0;
-                else
-                    orientationValue = Math.toDegrees((double)orientation[0]);
-
-                //평균값 계산이 완료되면 다음 동작 수행
-                //if(CountCalcAverage(orientationValue) == 10)
-
-                ((MainActivity) context).tvOrientation.setText(Double.toString(orientationValue));
-                break;
+//            case Sensor.TYPE_MAGNETIC_FIELD:
+//                System.arraycopy(event.values, 0, magnetism, 0, event.values.length);    //현재 자기계 센서값 읽어오기
+//                SensorManager.getRotationMatrix(R, null, accelForMagnet, magnetism);    //회전 행렬 값 얻어오기
+//                SensorManager.getOrientation(R, orientation);    //방위값 저장
+//
+////                if(orientation[0] > 0.3)
+////                    direction = 2;
+////                else if(orientation[0] >= -0.3 && orientation[0] <= 0.3)
+////                    direction = 1;
+////                else if(orientation[0] < -0.3)
+////                    direction = 3;
+//                //방위 부호가 마이너스이면 플러스로 변환
+//                if(Math.toDegrees((double)orientation[0]) < 0.0)
+//                    orientationValue = Math.toDegrees((double)orientation[0]) + 360.0;
+//                else
+//                    orientationValue = Math.toDegrees((double)orientation[0]);
+//
+//                //평균값 계산이 완료되면 다음 동작 수행
+//                if(CountCalcAverage(orientationValue) == 10) {
+//                    ((MainActivity)context).tvOrientation.setText(Double.toString(orientationValue));
+//                }
+//
+//
+//                break;
 
             //자이로 센서 데이터 변화에 따른 처리
             case Sensor.TYPE_GYROSCOPE:
@@ -146,7 +159,7 @@ public class PositionManager implements SensorEventListener{
 
                     //시간 변화량 측정
                     double deltaT = ((double)(gyroCurrentTIme - gyroLastTime) / 1000);    //msec -> sec
-                    double gyroWindow = 0.08;
+                    double gyroWindow = 0.02;
 
                     //z축 회전 각속도 측정 및 노이즈 무시
                     gyroZ[1] = event.values[2];
@@ -155,17 +168,21 @@ public class PositionManager implements SensorEventListener{
                     //z축 회전 각속도 적분 -> 회전한 각도
                     yaw = CalcIntegral(yaw, gyroZ[0], gyroZ[1], deltaT);
                     turnedDegree = yaw * radianToDegree;    //radian -> turnedDegree
-                    ((MainActivity)context).tvTurnedDegree.setText(Double.toString(turnedDegree));
-                    Log.i("turnedDegree", Double.toString(turnedDegree));
                     //현재 각속도를 이전 각속도로 저장
                     gyroZ[0] = gyroZ[1];
 
                     //회전이 끝났는지 체크
                     MovementEndCheck("gyroscope");
+                    ((MainActivity)context).tvTurnedDegree.setText(Double.toString(theta));
+                    Log.i("gyro", Double.toString(gyroZ[1]));
+                    Log.i("theta", Double.toString(theta));
+                    //Log.i("turnedDegree", Double.toString(turnedDegree));
+                    gyroChanged = true;
                 }
                 break;
-
         }
+        //현재 카트 좌표 계산
+        CalcCoord();
     }
 
     //움직임이 없을 떄 센서 값 노이즈 발생 시 제거하는 메소드
@@ -195,8 +212,38 @@ public class PositionManager implements SensorEventListener{
 
         //회전이 없는 자이로스코프 센서에 대한 처리
         else if(sensorType.equals("gyroscope")) {
-            if(gyroZ[1] == 0) {
-                yaw = 0;
+            //처음 정지했을 때와 회전을 다하고 난 뒤 정지했을 때
+            if((gyroZ[1] == 0) /*|| (degreeChanged == true)*/) {
+                //yaw = 0;
+                //if(degreeChanged == false)
+                //   degreeChanged = true;
+                //회전을 다하고 정지했을 때
+                //자이로 센서값이 0이면 초반 튀는 값이 보정됨
+                gyroCalibrated = true;
+                //회전이 이뤄졌었다면
+                if(degreeChanged == true) {
+                    degreeChanged = false;
+                    //이전까지의 회전 각도를 더해줌
+                    theta = theta + (-turnedDegree);
+                }
+                    yaw = 0;
+                //degreeChanged = false;
+            }
+
+            //정지하기 전까지의 회전각 저장
+            else {
+                //초반 튀는 값이 보정되여야만 실행
+                if(gyroCalibrated == true)
+                    //회전각이 변하면 정지할 것으로 앎
+                    if(degreeChanged == false)
+                        degreeChanged = true;
+                //if(degreeChanged == false)
+                //    return;
+               // else {
+                //    theta = theta + (-turnedDegree);    //삼각함수를 위해선 실제 각도 부호와 반대로 해야 함
+                    //Log.i("theta", Double.toString(turnedDegree));
+                    //degreeChanged = true;
+                //}
             }
         }
 
@@ -212,16 +259,27 @@ public class PositionManager implements SensorEventListener{
         return integratedData;
     }
 
-    //10번 방위 값을 읽어와 방위값의 평균을 구하는 메소드
-    int CountCalcAverage(double value) {
-        if(countGotAverage < 10) {
-            averageValue += value;
-            countGotAverage++;
-            averageValue = averageValue / (double) countGotAverage;
-            return countGotAverage;
+    //위치 좌표 변화를 측정하여 현재 카트 좌표를 실시간으로 계산하는 메소드
+    void CalcCoord() {
+        if((accelChanged == true) && (gyroChanged == true)) {
+            deltaX = deltaDistance * Math.cos(Math.toRadians(theta));    //x좌표 변화량 : 이동 거리 * cos 세타
+            deltaY = deltaDistance * Math.sin(Math.toRadians(theta));    //y좌표 변화량 : 이동 거리 * sin 세타
+            //현재 카트 x, y좌표 변경
+            coordX = coordX + deltaX;
+            coordY = coordY + deltaY;
         }
-        else
-            return 0;
     }
+
+    //10번 방위 값을 읽어와 방위값의 평균을 구하는 메소드
+//    int CountCalcAverage(double value) {
+//        if(countGotAverage < 10) {
+//            averageOrientation += value;
+//            countGotAverage++;
+//            averageOrientation = averageOrientation / (double) countGotAverage;
+//            return countGotAverage;
+//        }
+//        else
+//            return 0;
+//    }
 
 }
