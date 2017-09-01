@@ -25,8 +25,8 @@ public class NavigatorArrow {
         this.tCoordY = tCoordY;
     }
 
-    public void rotateArrow(){
-        img.setImageBitmap(rotateImage(BitmapFactory.decodeResource(context.getResources(), R.drawable.arrow3), getDegree()));
+    public void rotateArrow(int degree){
+        img.setImageBitmap(rotateImage(BitmapFactory.decodeResource(context.getResources(), R.drawable.arrow3), degree));
     }
 
     public Bitmap rotateImage(Bitmap src, float degree){
@@ -38,7 +38,6 @@ public class NavigatorArrow {
     public int getDegree(){
         degree = (int)Math.toDegrees(Math.acos( (Math.abs(tCoordY-mCoordY) / (Math.sqrt( (Math.abs(tCoordX-mCoordX)) * (Math.abs(tCoordX-mCoordX)) + (Math.abs(tCoordY-mCoordY)) * (Math.abs(tCoordY-mCoordY)) )))));
 
-        //현재 위치 기준 사분면 처리. 확정되지 않아 일단 아무 처리도 하지 않음
         if(tCoordX-mCoordX >= 0 && tCoordY-mCoordY >= 0) ;
         else if((tCoordX==mCoordX) && (mCoordY>tCoordY)) degree = 180;
         else if(tCoordX-mCoordX >= 0 && tCoordY-mCoordY <= 0) degree  = (90-degree) + 90;
