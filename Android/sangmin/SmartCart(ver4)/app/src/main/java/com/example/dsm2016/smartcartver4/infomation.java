@@ -1,15 +1,11 @@
 package com.example.dsm2016.smartcartver4;
 
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.HashSet;
@@ -25,8 +21,6 @@ public class infomation extends AppCompatActivity {
 
     Intent intent;
 
-    int k=0;
-
     ImageButton homeButton;
     ImageButton searchButton;
     ImageButton resultButton;
@@ -39,14 +33,6 @@ public class infomation extends AppCompatActivity {
     TextView textPrice;
     TextView textCompany;
 
-    ImageView arrow;
-
-    NavigatorArrow nArrow;
-
-    SensorManager mSensorManager;
-    PositionManager posManager;
-
-    int initialDegree;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,20 +54,6 @@ public class infomation extends AppCompatActivity {
 
         cancelButton = (ImageButton)findViewById(R.id.cancelButton);
         purchaseButton = (ImageButton)findViewById(R.id.purchaseButton);
-
-        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        posManager = new PositionManager(this, true);
-
-        arrow = (ImageView)findViewById(R.id.nav_arrow);
-
-        nArrow = new NavigatorArrow(getApplicationContext(), arrow, 1200, 150, 700, 700);
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                nArrow.rotateArrow(nArrow.getDegree());
-            }
-        });
 
         purchaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,7 +95,6 @@ public class infomation extends AppCompatActivity {
             }
         });
 
-        NavigatorMove.start();
     }
 
     private void init(){
@@ -136,38 +107,5 @@ public class infomation extends AppCompatActivity {
     private RealmResults<ShoppingItem> getUserList() {
        return mRealm.where(ShoppingItem.class).findAll();
     }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-
-        mSensorManager.registerListener(posManager, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_GAME);
-        mSensorManager.registerListener(posManager, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_GAME);
-        mSensorManager.registerListener(posManager, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_GAME);
-    }
-
-    public Thread NavigatorMove = new Thread(){
-        @Override
-        public void run() {
-            super.run();
-
-            initialDegree = nArrow.getDegree();
-
-            while(true) {
-
-                try {
-                    Thread.sleep(50);
-                } catch (Exception e) {
-                }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        nArrow.rotateArrow(initialDegree + (int)posManager.turnedDegree);
-                    }
-                });
-            }
-        }
-    };
 
 }
