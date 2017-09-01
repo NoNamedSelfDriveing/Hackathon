@@ -174,8 +174,8 @@ public class PositionManager implements SensorEventListener{
                     //회전이 끝났는지 체크
                     MovementEndCheck("gyroscope");
                     ((MainActivity)context).tvTurnedDegree.setText(Double.toString(theta));
-                    Log.i("gyro", Double.toString(gyroZ[1]));
-                    Log.i("theta", Double.toString(theta));
+                    //Log.i("gyro", Double.toString(gyroZ[1]));
+                    //Log.i("theta", Double.toString(theta));
                     //Log.i("turnedDegree", Double.toString(turnedDegree));
                     gyroChanged = true;
                 }
@@ -267,6 +267,9 @@ public class PositionManager implements SensorEventListener{
             //현재 카트 x, y좌표 변경
             coordX = coordX + deltaX;
             coordY = coordY + deltaY;
+
+            Log.i("coordX", Double.toString(coordX));
+            Log.i("coordY", Double.toString(coordY));
         }
     }
 
