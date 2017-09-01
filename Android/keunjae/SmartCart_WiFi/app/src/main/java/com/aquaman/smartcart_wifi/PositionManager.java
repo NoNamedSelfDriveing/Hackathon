@@ -22,7 +22,8 @@ public class PositionManager implements SensorEventListener{
     double[] distance = {0, 0};    //x축 이동 거리
     long accelCurrentTime = 0;    //현재 데이터를 얻어 온 시간
     int countMoveEnded = 0;    //움직임이 없는 경우를 카운트하는 변수
-
+    boolean accelChanged = false;    //가속도 센서 값을 읽어 계산이 실행되었는지 판단하는 변수
+    double deltaDistance = 0.0;    //순간 거리 변화량(cm)
     //double[] accelerationY = new double[2];    //y축 이전 및 현재 가속도 데이터
     //double[] velocityY = new double[2];    //y축 이전 및 현재 속도 데이터
     //double[] positionY = new double[2];    //y축 이동 거리
@@ -36,6 +37,7 @@ public class PositionManager implements SensorEventListener{
     int direction;    //동서남북 저장 변수 1 : north, 2 : east, 3 : south, 4 : west
     int countGotAverage = 0;    //평균 계산 횟수 카운팅 변수
     double averageOrientation = 0.0;    //평균 값
+    boolean gyroChanged = false;    //자이로 센서 값을 읽어 계산이 실행되었는지 판단하는 변수
 
     //자이로스코프 센서를 통한 회전 각도 측정 관련 데이터
     long gyroCurrentTIme = 0;    //현재 데이터를 얻어온 시간
@@ -46,6 +48,10 @@ public class PositionManager implements SensorEventListener{
     boolean degreeChanged = false;    //휴대폰이 회전했는지 체킹하는 변수
     boolean gyroCalibrated = false;    //앱 실행 시 초반 튀는 자이로 값 보정을 위한 변수
     double theta = 180.0;    //turnedDegree 저장 변수, 완전한 일반각을 구하기 위해 180도를 저장하고 시작
+
+    //카트의 위치 정보 관련 데이터
+    double coordX = 1200.0, coordY = 150.0;
+    double deltaX = 0.0, deltaY = 0.0;
 
     public PositionManager(Context context) {
         this.context = context;
@@ -99,6 +105,7 @@ public class PositionManager implements SensorEventListener{
                     //속도 적분 -> 거리
                     distance[1] = CalcIntegral(distance[0], velocity[0], velocity[1], deltaT);
                     distance[1] = Double.parseDouble(String.format("%.3f", distance[1]));    //소수 셋째자리까지 표현
+                    deltaDistance = (distance[1] - distance[0]) * 100.0;   //이동 거리 순간 변화량 측정, m -> cm 변환
 
                     ((MainActivity) context).tvAcceleration.setText(Double.toString(acceleration[1]));
                     ((MainActivity) context).tvVelocity.setText(Double.toString(velocity[1]));
@@ -111,6 +118,8 @@ public class PositionManager implements SensorEventListener{
                     acceleration[0] = acceleration[1];
                     velocity[0] = velocity[1];
                     distance[0] = distance[1];
+
+                    accelChanged = true;
                 }
                 break;
 
@@ -168,10 +177,12 @@ public class PositionManager implements SensorEventListener{
                     Log.i("gyro", Double.toString(gyroZ[1]));
                     Log.i("theta", Double.toString(theta));
                     //Log.i("turnedDegree", Double.toString(turnedDegree));
+                    gyroChanged = true;
                 }
                 break;
-
         }
+        //현재 카트 좌표 계산
+        CalcCoord();
     }
 
     //움직임이 없을 떄 센서 값 노이즈 발생 시 제거하는 메소드
@@ -246,6 +257,17 @@ public class PositionManager implements SensorEventListener{
         //이전 데이터와 현재 데이터의 평균을 높이로 하여 그래프 상 직사각형의 넓이를 구함
         integratedData = baseData + (prevData + ((curData - prevData) / 2)) * time;
         return integratedData;
+    }
+
+    //위치 좌표 변화를 측정하여 현재 카트 좌표를 실시간으로 계산하는 메소드
+    void CalcCoord() {
+        if((accelChanged == true) && (gyroChanged == true)) {
+            deltaX = deltaDistance * Math.cos(Math.toRadians(theta));    //x좌표 변화량 : 이동 거리 * cos 세타
+            deltaY = deltaDistance * Math.sin(Math.toRadians(theta));    //y좌표 변화량 : 이동 거리 * sin 세타
+            //현재 카트 x, y좌표 변경
+            coordX = coordX + deltaX;
+            coordY = coordY + deltaY;
+        }
     }
 
     //10번 방위 값을 읽어와 방위값의 평균을 구하는 메소드
