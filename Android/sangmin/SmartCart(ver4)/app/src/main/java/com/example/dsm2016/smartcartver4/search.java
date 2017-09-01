@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +33,7 @@ public class search extends AppCompatActivity {
         setContentView(R.layout.activity_search);
 
         homeIntent = new Intent(this, Home.class);
-        intent = new Intent(this, searchResult.class);
+        intent = new Intent(this, SurroundingItemsViewer.class);
 
         editText = (EditText)findViewById(R.id.editText);
 

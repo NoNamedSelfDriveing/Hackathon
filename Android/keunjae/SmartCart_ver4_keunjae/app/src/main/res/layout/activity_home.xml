@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:paddingLeft="2.5dp"
+    android:paddingRight="2.5dp"
+    tools:context="com.example.dsm2016.smartcartver4.Home"
+    android:background="@drawable/newbackground">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="100dp"
+        android:layout_marginLeft="60dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="오늘의 세일세일"
+        android:textSize="50sp"
+        />
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="60dp"
+        android:layout_marginRight="112dp"
+        android:layout_height="300dp"
+        android:scrollbars="horizontal"
+        android:layout_marginTop="82dp"/>
+
+
+        <ImageButton
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/homebutton3"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:elevation="4dp"
+            android:layout_marginRight="21.5dp"
+            android:id="@+id/homeButton"
+            android:text="Hoasdfme"/>
+
+        <TextView
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="30dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:elevation="4dp"
+            android:layout_marginRight="21.5dp"
+            android:text="Home"
+            android:gravity="center"
+            android:id="@+id/homeText"/>
+
+        <ImageButton
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:background="@drawable/searchbutton1"
+            android:layout_marginTop="108dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="16dp"
+            android:id="@+id/searchButton"/>
+
+        <TextView
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="108dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:elevation="4dp"
+            android:layout_marginRight="16dp"
+            android:text="Search"
+            android:gravity="center"
+            android:id="@+id/searchText"/>
+
+        //98
+
+        <ImageButton
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="186dp"
+            android:background="@drawable/resultbutton1"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:elevation="4dp"
+            android:layout_marginRight="9dp"
+            android:id="@+id/resultButton"/>
+
+        <TextView
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="186dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:elevation="4dp"
+            android:layout_marginRight="9dp"
+            android:text="Result"
+            android:gravity="center"
+            android:id="@+id/resultText"/>
+
+        <ImageButton
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="264dp"
+            android:background="@drawable/infobutton1"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:elevation="4dp"
+            android:layout_marginRight="4.5dp"
+            android:id="@+id/infoButton"/>
+//248
+        <TextView
+            android:layout_width="58dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="264dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:elevation="4dp"
+            android:layout_marginRight="4.5dp"
+            android:text="Info"
+            android:gravity="center"
+            android:id="@+id/infoText"/>
+
+
+</RelativeLayout>
