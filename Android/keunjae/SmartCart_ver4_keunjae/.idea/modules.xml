@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/SmartCart(ver4).iml" filepath="$PROJECT_DIR$/SmartCart(ver4).iml" />
+      <module fileurl="file://$PROJECT_DIR$/SmartCart_ver4_keunjae.iml" filepath="$PROJECT_DIR$/SmartCart_ver4_keunjae.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

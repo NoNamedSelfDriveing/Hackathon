@@ -86,7 +86,7 @@ public class PositionManager implements SensorEventListener, Serializable {
                     //이전 가속도와 현재 가속도 측정 시간 gap 측정
                     //msec를 sec로 변환
                     double deltaT = ((double) (accelCurrentTime - accelLastTime) / 1000);
-                    double accelerationWindow = 0.25;    //가속도 센서값 노이즈 판단 기준점
+                    double accelerationWindow = 0.3;    //가속도 센서값 노이즈 판단 기준점
                     //Log.d("deltaT", Double.toString(deltaT));
 
                     //low-pass filter
@@ -275,28 +275,28 @@ public class PositionManager implements SensorEventListener, Serializable {
 //            editor.putString("coordX", Double.toString(coordX));
 //            editor.putString("coordY", Double.toString(coordY));
 //            editor.commit();
-             //Log.i("coordX", Double.toString(coordX));
-             //Log.i("coordY", Double.toString(coordY));
+            //Log.i("coordX", Double.toString(coordX));
+            //Log.i("coordY", Double.toString(coordY));
         }
     }
 
-    //카트와 각 물품들까지의 거리 측정
-    ListItem CalcDistance(ListItem[] items, double[] itemDistance) {
-        double[] distance = new double[8];
-        for (int i = 0; i < items.length; i++) {
-            //itemDistance[i] = Math.sqrt(Math.pow(coordX - items[i].coordX, 2) + Math.pow(coordY - items[i].coordY, 2));
-            //Log.i("distance", Double.toString(itemDistance[0]));
-            //SystemClock.sleep(500);
-            if (itemDistance[i] < 50.0)
-                return items[i];
-                //itemsArrayList.add(items[i]);
-            else
-                return null;
-            //itemsArrayList.remove(items[i]);
-        }
-        return null;
-    }
-}
+//    //카트와 각 물품들까지의 거리 측정
+//    ListItem CalcDistance(ListItem[] items, double[] itemDistance) {
+//        double[] distance = new double[8];
+//        for (int i = 0; i < items.length; i++) {
+//            //itemDistance[i] = Math.sqrt(Math.pow(coordX - items[i].coordX, 2) + Math.pow(coordY - items[i].coordY, 2));
+//            //Log.i("distance", Double.toString(itemDistance[0]));
+//            //SystemClock.sleep(500);
+//            if (itemDistance[i] < 50.0)
+//                return items[i];
+//                //itemsArrayList.add(items[i]);
+//            else
+//                return null;
+//            //itemsArrayList.remove(items[i]);
+//        }
+//        return null;
+//    }
+//}
 
     //10번 방위 값을 읽어와 방위값의 평균을 구하는 메소드
 //    int CountCalcAverage(double value) {
@@ -310,3 +310,4 @@ public class PositionManager implements SensorEventListener, Serializable {
 //            return 0;
 //    }
 
+}

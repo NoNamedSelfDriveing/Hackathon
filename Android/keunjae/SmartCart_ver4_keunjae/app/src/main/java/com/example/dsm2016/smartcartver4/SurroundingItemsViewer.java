@@ -232,7 +232,7 @@ public class SurroundingItemsViewer extends AppCompatActivity {
         for(int i = 0; i < items.length; i++) {
             itemDistance[i] = Math.sqrt(Math.pow(posManager.coordX - items[i].coordX, 2) + Math.pow(posManager.coordY - items[i].coordY, 2));
             Log.i("distance", Double.toString(itemDistance[0]));
-            if(itemDistance[i] < 500.0)
+            if(itemDistance[i] < 100.0)
                 itemsArrayList.add(items[i]);
             else
                 itemsArrayList.remove(items[i]);
