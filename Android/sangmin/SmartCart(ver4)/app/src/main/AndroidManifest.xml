@@ -23,7 +23,13 @@
             android:screenOrientation="landscape">
             >
         </activity>
-        <activity android:name=".searchResult"
+        <activity
+            android:name=".searchResult"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".infomation"
+            android:screenOrientation="landscape"></activity>
+        <activity android:name=".ShoppingList"
             android:screenOrientation="landscape"></activity>
     </application>
 
